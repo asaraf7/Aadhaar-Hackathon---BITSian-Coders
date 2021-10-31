@@ -11,5 +11,7 @@ Some noteworthy points:
 7. A recommendation was given by Mentor sir, that we verify the actual existence of the Formatted Address output, so as to ensure deliveribility of Aadhaar Letter. We have come up with an elegant solution, to use Google Maps API which can return the exact location of the Address, as well as Latitude and Longitude values- which will testify the existence. We will wait for UIDAI's nod to use that in our code, since it Google maps API requires us to create a Billing Account. Other APIs tested by us were not found to be powerful enough!
 
 Thank you:)
+
+
 Ankur Lhila & Avi Saraf
 BITSian Coders
