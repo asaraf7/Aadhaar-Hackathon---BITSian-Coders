@@ -8,6 +8,8 @@ app=Flask(__name__)
 api=Api(app)
 
 class AddressUpdate(Resource):
+    
+    #HTTP request to API Supports only GET method
 
     def get(self):
 
@@ -22,6 +24,7 @@ class AddressUpdate(Resource):
         #Storing different fields of the address as elements of a list (array)
         for item in data:
             
+            #All items have been converted to avoid ambiguity and for ease of computation.
             if item!=item.lower():
                 data[item.lower()]=data[item].lower()
                 del data[item]
@@ -31,43 +34,47 @@ class AddressUpdate(Resource):
                 address.append(data[item])
 
         state=data["state"]
-        print(copy)
-        print(address)
-
        
         #Formatting the address
         new_address= self.formatter(address,state)
 
-
         address2=new_address["Formatted Address"].split(',')
         final_address=[]
 
-        print(address2)
-        template=["building","street","landmark","locality","vtc","sub district","district","state","pincode"]
+        
+        #The final address must adhere to a proper format which starts from building number and ends at Pincode.
+        #We compare the user's input with a pre-defined template to ensure the above condition.
+        
+        template=["pincode","state","district","sub district","vtc","locality","landmark","street","building"]
+        out_address={"Formatted Address":""}
+        
+        #Below iterator generates a clean Addess string after it has been formatted.
         
         for i in template:
             for j in copy:
-                if j.lower()==i and i!="pincode" and data[i] in address2:
-                    c=address2.index(data[i])
+                if j.lower()==i and i!="pincode" and i!="building" and data[i] in address2:
                     if copy[j] not in final_address:
                         final_address.append(copy[j])
                         final_address.append(",")
+                        out_address[i]=copy[j]
                 elif i=="pincode" and j.lower()=="pincode":
                     final_address.append(copy[j]+'.')
-
-        #Send back Formatted address in json format
-
-        print(final_address)
+                    out_address[i]=copy[j]
+                elif i=="building" and j.lower()=="building":
+                    final_address.append(copy[j])
+                    out_address[i]=copy[j]
         
-        out_address={"Formatted Address":""}
-        for i in final_address:
+        '''As the template was reversed top to bottom, we need to reverse it back in bottom to top form of address, 
+        where bottom level is building and top level is pincode.'''
+        
+        for i in reversed(final_address):
             out_address["Formatted Address"]+= i+ " "
+            
+        #Send back Formatted address in json format
         return jsonify(out_address)
 
 
     def formatter(self,data,state):
-
-        print(data)
 
         new_address=""
         for i in range (len(data)-1):
@@ -75,14 +82,13 @@ class AddressUpdate(Resource):
 
                 #If any two parts of the address are exactly same, then one must be merged
                 if SequenceMatcher(None,data[i],data[j]).ratio()==1.0:
-                    data[i]=""
+                    if data[j]==state:
+                        data[i]=""
+                    else:
+                        data[j]=""
 
                 #If two parts of the address are very similar, then they must be merged, provided State is not merged
                 elif SequenceMatcher(None,data[i],data[j]).ratio()>=0.90 and data[j]!=state:
-                    data[i]=""
-                elif (' po' in data[j] or ' ps' in data[j]) and (SequenceMatcher(None,data[i],data[j]).ratio()>0.6):
-                    data[j]=""
-                elif (' po' in data[i] or ' ps' in data[i]) and (SequenceMatcher(None,data[i],data[j]).ratio()>0.6):
                     data[i]=""
 
 
